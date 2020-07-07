@@ -10,7 +10,7 @@ using namespace std;
 int main(){
     //define initial parameters
     Eigen::Vector3d w(0.01, 0.02, 0.02);
-    Eigen::AngleAxisd angle_axis = Eigen::AngleAxisd(M_PI/5, Eigen::Vector3d(0,0,1));
+    Eigen::AngleAxisd angle_axis = Eigen::AngleAxisd(M_PI/6, Eigen::Vector3d(0,0,1));
     Eigen::Matrix3d R = angle_axis.toRotationMatrix();
     Sophus::SO3 so3_R(R);
     Eigen::Quaterniond q = Eigen::Quaterniond(R);
