@@ -133,6 +133,12 @@ void IMU::testImu(std::string src, std::string dist)
     Eigen::Vector3d gw(0,0,-9.81);    // ENU frame
     Eigen::Vector3d temp_a;
     Eigen::Vector3d theta;
+
+    //test
+    std::cout<< "size of imu data is" << imudata.size()<<"++++++++++++++++++++++" << std::endl;
+    //test
+
+
     for (int i = 1; i < imudata.size(); ++i) {
 
         MotionData imupose = imudata[i];
@@ -154,10 +160,19 @@ void IMU::testImu(std::string src, std::string dist)
 //        Vw = Vw + acc_w * dt;
         
         /// 中值积分
+        //test
+        std::cout<< "the i is" << i <<"++++++++++++++++++"<<std::endl;
+        //test
         MotionData imupose_next = imudata[i + 1];
 
+        //test
+        if(i == 4000){
+         std::cout<< "the 4001 data is" << imupose_next.imu_acc <<"++++++++++++++++++"<<std::endl;
+        }
+        //test
+
         Eigen::Quaterniond dq;
-        Eigen::Vector3d dtheta_half =(imupose.imu_gyro + imupose_next.imu_gyro) * dt / 2.0;
+        Eigen::Vector3d dtheta_half =(imupose.imu_gyro + imupose_next.imu_gyro) * dt / 4.0;
         dq.w() = 1;
         dq.x() = dtheta_half.x();
         dq.y() = dtheta_half.y();
