@@ -137,14 +137,15 @@ void IMU::testImu(std::string src, std::string dist)
 
         MotionData imupose = imudata[i];
 
+        //Euler Integrate
         //delta_q = [1 , 1/2 * thetax , 1/2 * theta_y, 1/2 * theta_z]
-        Eigen::Quaterniond dq;
-        Eigen::Vector3d dtheta_half =  imupose.imu_gyro * dt /2.0;
-        dq.w() = 1;
-        dq.x() = dtheta_half.x();
-        dq.y() = dtheta_half.y();
-        dq.z() = dtheta_half.z();
-        dq.normalize();
+//        Eigen::Quaterniond dq;
+//        Eigen::Vector3d dtheta_half =  imupose.imu_gyro * dt /2.0;
+//        dq.w() = 1;
+//        dq.x() = dtheta_half.x();
+//        dq.y() = dtheta_half.y();
+//        dq.z() = dtheta_half.z();
+//        dq.normalize();
         
         /// imu 动力学模型 欧拉积分
 //        Eigen::Vector3d acc_w = Qwb * (imupose.imu_acc) + gw;  // aw = Rwb * ( acc_body - acc_bias ) + gw
@@ -154,8 +155,20 @@ void IMU::testImu(std::string src, std::string dist)
         
         /// 中值积分
         MotionData imupose_next = imudata[i + 1];
+
+        Eigen::Quaterniond dq;
+        Eigen::Vector3d dtheta_half =(imupose.imu_gyro + imupose_next.imu_gyro) * dt / 2.0;
+        dq.w() = 1;
+        dq.x() = dtheta_half.x();
+        dq.y() = dtheta_half.y();
+        dq.z() = dtheta_half.z();
+        dq.normalize();
+
         Eigen::Quaterniond Qwb_next = Qwb * dq;
         Eigen::Vector3d acc_w = (Qwb * (imupose.imu_acc) + gw + Qwb_next * (imupose_next.imu_acc) + gw)/2;
+        Pwb = Pwb + Vw * dt + 0.5 * dt * dt * acc_w;
+        Vw = Vw + acc_w * dt;
+        Qwb = Qwb_next;
 
 
 
