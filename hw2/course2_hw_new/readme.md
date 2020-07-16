@@ -15,7 +15,7 @@
 ##### 2.1 使用 imu_utils 完成 allan 标定
 
 1. ros下编译 
-2. 执行, 生成 imu.bag 
+2. 执行, 生成 imu.bag (rosrun gener_alldata), vio-sim-rosversion中
 3. rosbag play -r 500 imgimu_utils.bag 回放
 4. 用imu_utils进行接收和分析
 5. 用imu_utils下的scripts/下的matlab 脚本画allan曲线

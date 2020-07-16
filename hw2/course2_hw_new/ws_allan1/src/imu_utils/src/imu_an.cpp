@@ -12,6 +12,7 @@
 #include <code_utils/ros_utils.h>
 #include <geometry_msgs/Vector3Stamped.h>
 #include <iostream>
+#include <fstream>
 #include <mutex>
 #include <opencv2/opencv.hpp>
 #include <queue>
@@ -232,7 +233,7 @@ main( int argc, char** argv )
     acc_y = new imu::AllanAcc( "acc y", max_cluster );
     acc_z = new imu::AllanAcc( "acc z", max_cluster );
     std::cout << "wait for imu data." << std::endl;
-    ros::Rate loop( 100 );
+    ros::Rate loop( 200 );
 
     //    ros::spin( );
     while ( !end )
