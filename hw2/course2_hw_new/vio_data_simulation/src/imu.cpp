@@ -141,7 +141,7 @@ void IMU::testImu(std::string src, std::string dist)
 
     for (int i = 1; i < imudata.size(); ++i) {
 
-        MotionData imupose = imudata[i];
+        //MotionData imupose = imudata[i];
 
         //Euler Integrate
         //delta_q = [1 , 1/2 * thetax , 1/2 * theta_y, 1/2 * theta_z]
@@ -163,11 +163,13 @@ void IMU::testImu(std::string src, std::string dist)
         //test
         std::cout<< "the i is" << i <<"++++++++++++++++++"<<std::endl;
         //test
-        MotionData imupose_next = imudata[i + 1];
+
+        MotionData imupose = imudata[i - 1];
+        MotionData imupose_next = imudata[i];
 
         //test
         if(i == 4000){
-         std::cout<< "the 4001 data is" << imupose_next.imu_acc <<"++++++++++++++++++"<<std::endl;
+         std::cout<< "the 4000 data is" << imupose_next.imu_acc <<"++++++++++++++++++"<<std::endl;
         }
         //test
 

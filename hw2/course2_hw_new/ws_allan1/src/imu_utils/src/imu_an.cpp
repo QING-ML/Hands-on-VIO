@@ -233,7 +233,7 @@ main( int argc, char** argv )
     acc_y = new imu::AllanAcc( "acc y", max_cluster );
     acc_z = new imu::AllanAcc( "acc z", max_cluster );
     std::cout << "wait for imu data." << std::endl;
-    ros::Rate loop( 200 );
+    ros::Rate loop( 100 );
 
     //    ros::spin( );
     while ( !end )
@@ -310,6 +310,8 @@ main( int argc, char** argv )
     imu::FitAllanAcc fit_acc_z( acc_v_z, acc_ts_z, acc_z->getFreq( ) );
     std::cout << "-------------------" << std::endl;
 
+    std::cout << "handle over========================================" << std::endl;
+
     std::vector< double > acc_sim_d_x = fit_acc_x.calcSimDeviation( acc_ts_x );
     std::vector< double > acc_sim_d_y = fit_acc_y.calcSimDeviation( acc_ts_x );
     std::vector< double > acc_sim_d_z = fit_acc_z.calcSimDeviation( acc_ts_x );
@@ -318,6 +320,8 @@ main( int argc, char** argv )
     writeData3( IMU_NAME + "_acc", acc_ts_x, acc_d_x, acc_d_y, acc_d_z );
 
     writeYAML( data_save_path, IMU_NAME, fit_gyr_x, fit_gyr_y, fit_gyr_z, fit_acc_x, fit_acc_y, fit_acc_z );
+
+
 
     return 0;
 }

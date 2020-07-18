@@ -124,7 +124,8 @@ FitAllanAcc::getBiasInstability( ) const
 double
 FitAllanAcc::getWhiteNoise( ) const
 {
-    return sqrt( freq ) * sqrt( calcSigma2( Q, N, B, K, R, 1 ) );
+    //return sqrt( freq ) * sqrt( calcSigma2( Q, N, B, K, R, 1 ) );
+    return ( 1 / sqrt( freq ) ) * sqrt( calcSigma2( Q, N, B, K, R, 1 ) );
 }
 
 std::vector< double >

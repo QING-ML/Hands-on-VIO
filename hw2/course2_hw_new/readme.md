@@ -2,7 +2,7 @@
 
 #### 1. 对非 ros : 生成运动 imu 数据
 
-1. 编译 
+1. 编译 ./build.sh
 
 2. 执行bin/data_gen, 生成数据 
 

@@ -126,7 +126,9 @@ FitAllanGyr::getBiasInstability( ) const
 double
 FitAllanGyr::getWhiteNoise( ) const
 {
+    std::cout<< "freq is -------------------------" << freq << std::endl;
     return sqrt( freq ) * sqrt( calcSigma2( Q, N, B, K, R, 1 ) ) / ( 57.3 * 3600 );
+    //return (1 / sqrt( freq ) ) * sqrt( calcSigma2( Q, N, B, K, R, 1 ) ) / ( 57.3 * 3600 );
 }
 
 double
