@@ -33,7 +33,7 @@ logK_z = slope * log10(3) + b_z
 K_x = 10^logK_x;
 K_y = 10^logK_y;
 K_z = 10^logK_z;
-sigma_w_gyr = K_x
+sigma_w_acc = K_x
 
 
 tauK = 3;
@@ -57,4 +57,4 @@ loglog(dt, lineK_x, '--' );
 grid on;
 grid on;
 loglog(tauK,  K_x, 'o');
-text(tauK, K_x, ['\sigma_w = ' , num2str(sigma_w_gyr)] )
+text(tauK, K_x, ['\sigma_w = ' , num2str(sigma_w_acc)] )

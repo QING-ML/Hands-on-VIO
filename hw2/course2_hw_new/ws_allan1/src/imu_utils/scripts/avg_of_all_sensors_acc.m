@@ -1,15 +1,15 @@
 clear 
-close all
+%%close al\
 
-dt = dlmread('../data/data_gx4_acc_t.txt');         
-data_x = dlmread('../data/data_gx4_acc_x.txt'); 
-data_y= dlmread('../data/data_gx4_acc_y.txt'); 
-data_z = dlmread('../data/data_gx4_acc_z.txt'); 
+dt = dlmread('E:\allan_matlab\data\data_A3_acc_t.txt');         
+data_x = dlmread('E:\allan_matlab\data\data_A3_acc_x.txt'); 
+data_y= dlmread('E:\allan_matlab\data\data_A3_acc_y.txt'); 
+data_z = dlmread('E:\allan_matlab\data\data_A3_acc_z.txt'); 
 data_draw=(data_x+data_y+data_z)/3 ;
 
-data_sim_x= dlmread('../data/data_gx4_sim_acc_x.txt'); 
-data_sim_y= dlmread('../data/data_gx4_sim_acc_y.txt'); 
-data_sim_z= dlmread('../data/data_gx4_sim_acc_z.txt'); 
+data_sim_x= dlmread('E:\allan_matlab\data\data_A3_sim_acc_x.txt'); 
+data_sim_y= dlmread('E:\allan_matlab\data\data_A3_sim_acc_y.txt'); 
+data_sim_z= dlmread('E:\allan_matlab\data\data_A3_sim_acc_z.txt'); 
 data_sim_draw=(data_sim_x+data_sim_y+data_sim_z)/3 ;
 
 figure
