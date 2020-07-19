@@ -11,14 +11,18 @@
 4. 换成中值积分, 再重做一遍上述1,2,3过程
 
 #### 2. 对ROS: 专门生成静止 imu 数据，用于 allan 方差标定
+1. catkin_make and source devel/setup.bash
+2. rosrun rosrun vio_data_simulation vio_data_simulation_node, 生成imu.bag,供标定包使用
 
 ##### 2.1 使用 imu_utils 完成 allan 标定
 
-1. ros下编译 
+1. ros下编译(学要ceres-solve and code_utils)
 2. 执行, 生成 imu.bag (rosrun gener_alldata), vio-sim-rosversion中
-3. rosbag play -r 500 imgimu_utils.bag 回放
-4. 用imu_utils进行接收和分析
-5. 用imu_utils下的scripts/下的matlab 脚本画allan曲线
+3. roslaunch imu_utils A3.launch, 启动 Allan曲线 绘制程序, A3.launch中需要修改max_time_min,该参数为imu.bag的观测时间, max_cluster为观测簇的大小.
+   max_cluster设置可见matlab document https://www.mathworks.com/help/nav/ug/inertial-sensor-noise-analysis-using-allan-variance.html
+4. rosbag play -r 200 imgimu_utils.bag 回放
+5. 用imu_utils进行接收和分析(allan曲线生成正确,但是噪声标定错误,在matlab中根据allan曲线,从新完成标定)
+6. 用imu_utils下的scripts/draw_allan_* 系列完成allan曲线绘制与标定
 
 ##### 2.2 使用 kalibr_allan 完成 allan 标定（推荐）
 
