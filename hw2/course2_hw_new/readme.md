@@ -16,8 +16,8 @@
 
 ##### 2.1 使用 imu_utils 完成 allan 标定
 
-1. ros下编译(学要ceres-solve and code_utils)
-2. 执行, 生成 imu.bag (rosrun gener_alldata), vio-sim-rosversion中
+1. ros下编译(需要ceres-solve and code_utils)
+2. 参见vio-data-simulation包的imu.bag生成
 3. roslaunch imu_utils A3.launch, 启动 Allan曲线 绘制程序, A3.launch中需要修改max_time_min,该参数为imu.bag的观测时间, max_cluster为观测簇的大小.
    max_cluster设置可见matlab document https://www.mathworks.com/help/nav/ug/inertial-sensor-noise-analysis-using-allan-variance.html
 4. rosbag play -r 200 imgimu_utils.bag 回放
