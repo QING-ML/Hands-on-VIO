@@ -23,6 +23,7 @@
 4. rosbag play -r 200 imgimu_utils.bag 回放
 5. 用imu_utils进行接收和分析(allan曲线生成正确,但是噪声标定错误,在matlab中根据allan曲线,从新完成标定)
 6. 用imu_utils下的scripts/draw_allan_* 系列完成allan曲线绘制与标定
+<img src="ws_allan1/src/imu_utils/figure/sigma_w_acc.png">
 
 ##### 2.2 使用 kalibr_allan 完成 allan 标定（推荐）
 
