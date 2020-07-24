@@ -85,7 +85,7 @@ bool Problem::Solve(int iterations) {
         {
             // setLambda
             AddLambdatoHessianLM();
-            // 第四步，解线性方程 H X = B
+            // 第四步，解线性方程 H X = B, formula 12 in paper
             SolveLinearSystem();
             //
             RemoveLambdaHessianLM();
@@ -93,11 +93,12 @@ bool Problem::Solve(int iterations) {
             // 优化退出条件1： delta_x_ 很小则退出
             if (delta_x_.squaredNorm() <= 1e-6 || false_cnt > 10) {
                 stop = true;
+                std::cout<< "stop while delta_x is too small "<<delta_x_.squaredNorm()<<" or false_cnt reaches 10--"<< false_cnt<<std::endl;
                 break;
             }
 
             // 更新状态量 X = X+ delta_x
-            UpdateStates();
+            UpdateStates();       
             // 判断当前步是否可行以及 LM 的 lambda 怎么更新
             oneStepSuccess = IsGoodStepInLM();
             // 后续处理，
@@ -120,8 +121,10 @@ bool Problem::Solve(int iterations) {
         iter++;
 
         // 优化退出条件3： currentChi_ 跟第一次的chi2相比，下降了 1e6 倍则退出
-        if (sqrt(currentChi_) <= stopThresholdLM_)
+        if (sqrt(currentChi_) <= stopThresholdLM_){
             stop = true;
+            std::cout<< "stop while sqrt currentChi is small"<<std::endl;
+        }
     }
     std::cout << "problem solve cost: " << t_solve.toc() << " ms" << std::endl;
     std::cout << "   makeHessian cost: " << t_hessian_cost_ << " ms" << std::endl;
@@ -146,9 +149,9 @@ void Problem::SetOrdering() {
 void Problem::MakeHessian() {
     TicToc t_h;
     // 直接构造大的 H 矩阵
-    ulong size = ordering_generic_;
+    ulong size = ordering_generic_; //3
     MatXX H(MatXX::Zero(size, size));
-    VecX b(VecX::Zero(size));
+    VecX b(VecX::Zero(size)); //3 * 1
 
     // TODO:: accelate, accelate, accelate
 //#ifdef USE_OPENMP
@@ -168,11 +171,11 @@ void Problem::MakeHessian() {
             auto v_i = verticies[i];
             if (v_i->IsFixed()) continue;    // Hessian 里不需要添加它的信息，也就是它的雅克比为 0
 
-            auto jacobian_i = jacobians[i];
+            auto jacobian_i = jacobians[i]; // 1 * 3
             ulong index_i = v_i->OrderingId();
             ulong dim_i = v_i->LocalDimension();
 
-            MatXX JtW = jacobian_i.transpose() * edge.second->Information();
+            MatXX JtW = jacobian_i.transpose() * edge.second->Information(); //3 * 1
             for (size_t j = i; j < verticies.size(); ++j) {
                 auto v_j = verticies[j];
 
@@ -183,7 +186,7 @@ void Problem::MakeHessian() {
                 ulong dim_j = v_j->LocalDimension();
 
                 assert(v_j->OrderingId() != -1);
-                MatXX hessian = JtW * jacobian_j;
+                MatXX hessian = JtW * jacobian_j; //3 * 3
                 // 所有的信息矩阵叠加起来
                 H.block(index_i, index_j, dim_i, dim_j).noalias() += hessian;
                 if (j != i) {
@@ -196,7 +199,7 @@ void Problem::MakeHessian() {
 
     }
     Hessian_ = H;
-    b_ = b;
+    b_ = b; // 3 * 1
     t_hessian_cost_ += t_h.toc();
 
     delta_x_ = VecX::Zero(size);  // initial delta_x = 0_n;
@@ -208,7 +211,7 @@ void Problem::MakeHessian() {
 */
 void Problem::SolveLinearSystem() {
 
-        delta_x_ = Hessian_.inverse() * b_;
+        delta_x_ = Hessian_.inverse() * b_; //3 * 1
 //        delta_x_ = H.ldlt().solve(b_);
 
 }
@@ -283,13 +286,28 @@ bool Problem::IsGoodStepInLM() {
 
     // recompute residuals after update state
     // 统计所有的残差
-    double tempChi = 0.0;
+    double tempChi = 0.0; //chi(p+h), currentLambda = chi(p)
     for (auto edge: edges_) {
         edge.second->ComputeResidual();
         tempChi += edge.second->Chi2();
     }
 
+    //method 1,2 shared
     double rho = (currentChi_ - tempChi) / scale;
+    //method 1 update
+//    if (rho > 0 && isfinite(tempChi))   // last step was good, 误差在下降
+//    {
+
+//        currentLambda_ = std::max(currentLambda_/3, 1e-7);
+
+//        currentChi_ = tempChi;
+//        return true;
+//    } else {
+//        currentLambda_ = std::min(currentLambda_ * 2, 1e7);
+//        return false;
+//    }
+
+    //method 2 update
     if (rho > 0 && isfinite(tempChi))   // last step was good, 误差在下降
     {
         double alpha = 1. - pow((2 * rho - 1), 3);
@@ -304,6 +322,40 @@ bool Problem::IsGoodStepInLM() {
         ni_ *= 2;
         return false;
     }
+
+     //method3 update
+//    RollbackStates();
+//    double temp_a = b_.transpose() * delta_x_;
+//    double alpha = temp_a / ( (tempChi - currentChi_)/2 + 2 * temp_a);
+//    //update delta delta = alpha * delta
+//    for (auto vertex: verticies_) {
+//        ulong idx = vertex.second->OrderingId();
+//        ulong dim = vertex.second->LocalDimension();
+//        delta_x_ = alpha * delta_x_.segment(idx, dim);
+
+//        // 所有的参数 x 叠加一个增量  x_{k+1} = x_{k} + delta_x
+//        vertex.second->Plus(delta_x_);
+//    }
+//    //calculate rho
+//    double tempChi_alpha = 0.0; //chi(p+h), currentLambda = chi(p)
+//    for (auto edge: edges_) {
+//        edge.second->ComputeResidual();
+//        tempChi_alpha += edge.second->Chi2();
+//    }
+//    double rho = (currentChi_ - tempChi_alpha) / scale;
+
+//    if (rho > 0.75 && isfinite(tempChi))   // last step was good, 误差在下降
+//    {
+
+//        currentLambda_ = std::max(currentLambda_/(1+alpha), 1e-7);
+
+//        //update Chi
+//        currentChi_ = tempChi_alpha;
+//        return true;
+//    } else {
+//        currentLambda_ = currentLambda_ + std::abs(tempChi_alpha - currentChi_) / (2 * alpha);
+//        return false;
+//    }
 }
 
 /** @brief conjugate gradient with perconditioning

@@ -28,7 +28,8 @@ public:
     virtual void ComputeResidual() override
     {
         Vec3 abc = verticies_[0]->Parameters();  // 估计的参数
-        residual_(0) = std::exp( abc(0)*x_*x_ + abc(1)*x_ + abc(2) ) - y_;  // 构建残差
+        //residual_(0) = std::exp( abc(0)*x_*x_ + abc(1)*x_ + abc(2) ) - y_;  // 构建残差
+        residual_(0) = abc(0)*x_*x_ + abc(1)*x_ + abc(2) - y_;  // 构建残差
     }
 
     // 计算残差对变量的雅克比
@@ -38,7 +39,8 @@ public:
         double exp_y = std::exp( abc(0)*x_*x_ + abc(1)*x_ + abc(2) );
 
         Eigen::Matrix<double, 1, 3> jaco_abc;  // 误差为1维，状态量 3 个，所以是 1x3 的雅克比矩阵
-        jaco_abc << x_ * x_ * exp_y, x_ * exp_y , 1 * exp_y;
+        //jaco_abc << x_ * x_ * exp_y, x_ * exp_y , 1 * exp_y; //differentiate to parameters a,b,c
+        jaco_abc << x_ * x_, x_, 1; //differentiate to parameters a,b,c
         jacobians_[0] = jaco_abc;
     }
     /// 返回边的类型信息
@@ -71,7 +73,8 @@ int main()
         double x = i/100.;
         double n = noise(generator);
         // 观测 y
-        double y = std::exp( a*x*x + b*x + c ) + n;
+        //double y = std::exp( a*x*x + b*x + c ) + n;
+        double y = a*x*x + b*x + c + n;
 //        double y = std::exp( a*x*x + b*x + c );
 
         // 每个观测对应的残差函数
