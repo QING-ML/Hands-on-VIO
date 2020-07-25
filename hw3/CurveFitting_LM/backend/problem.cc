@@ -90,12 +90,19 @@ bool Problem::Solve(int iterations) {
             //
             RemoveLambdaHessianLM();
 
+            // record lamba
+//            std::ofstream out_lambda;
+//            out_lambda.open("/home/zqq/vio/Hands-on-VIO/hw3/CurveFitting_LM/app/out_lambda.txt", std::ios::app);
+//            out_lambda << currentLambda_<<'\n';
+//            out_lambda.close();
+
             // 优化退出条件1： delta_x_ 很小则退出
             if (delta_x_.squaredNorm() <= 1e-6 || false_cnt > 10) {
                 stop = true;
                 std::cout<< "stop while delta_x is too small "<<delta_x_.squaredNorm()<<" or false_cnt reaches 10--"<< false_cnt<<std::endl;
                 break;
             }
+
 
             // 更新状态量 X = X+ delta_x
             UpdateStates();       
@@ -291,71 +298,81 @@ bool Problem::IsGoodStepInLM() {
         edge.second->ComputeResidual();
         tempChi += edge.second->Chi2();
     }
+    int choose_method = 2;
 
-    //method 1,2 shared
-    double rho = (currentChi_ - tempChi) / scale;
-    //method 1 update
-//    if (rho > 0 && isfinite(tempChi))   // last step was good, 误差在下降
-//    {
+    if(choose_method == 1 || choose_method == 2){
 
-//        currentLambda_ = std::max(currentLambda_/3, 1e-7);
+        //method 1,2 shared
+        double rho = (currentChi_ - tempChi) / scale;
+        if(choose_method == 1){
+            if (rho > 0 && isfinite(tempChi))   // last step was good, 误差在下降
+            {
 
-//        currentChi_ = tempChi;
-//        return true;
-//    } else {
-//        currentLambda_ = std::min(currentLambda_ * 2, 1e7);
-//        return false;
-//    }
+                currentLambda_ = std::max(currentLambda_/9, 1e-7);
 
-    //method 2 update
-    if (rho > 0 && isfinite(tempChi))   // last step was good, 误差在下降
-    {
-        double alpha = 1. - pow((2 * rho - 1), 3);
-        alpha = std::min(alpha, 2. / 3.);
-        double scaleFactor = (std::max)(1. / 3., alpha);
-        currentLambda_ *= scaleFactor;
-        ni_ = 2;
-        currentChi_ = tempChi;
-        return true;
-    } else {
-        currentLambda_ *= ni_;
-        ni_ *= 2;
-        return false;
+                currentChi_ = tempChi;
+                return true;
+            } else {
+                currentLambda_ = std::min(currentLambda_ * 11, 1e7);
+                return false;
+            }
+
+        }
+        else{
+            //method 2
+            if (rho > 0 && isfinite(tempChi))   // last step was good, 误差在下降
+            {
+                double alpha = 1. - pow((2 * rho - 1), 3);
+                alpha = std::min(alpha, 2. / 3.);
+                double scaleFactor = (std::max)(1. / 3., alpha);
+                currentLambda_ *= scaleFactor;
+                ni_ = 2;
+                currentChi_ = tempChi;
+                return true;
+            } else {
+                currentLambda_ *= ni_;
+                ni_ *= 2;
+                return false;
+            }
+        }
+    }
+    else {
+        //method3 update
+       RollbackStates();
+       double temp_a = b_.transpose() * delta_x_;
+       double alpha = temp_a / ( (tempChi - currentChi_)/2 + 2 * temp_a);
+       //update delta delta = alpha * delta
+       for (auto vertex: verticies_) {
+           ulong idx = vertex.second->OrderingId();
+           ulong dim = vertex.second->LocalDimension();
+           delta_x_ = alpha * delta_x_.segment(idx, dim);
+
+           // 所有的参数 x 叠加一个增量  x_{k+1} = x_{k} + delta_x
+           vertex.second->Plus(delta_x_);
+       }
+       //calculate rho
+       double tempChi_alpha = 0.0; //chi(p+h), currentLambda = chi(p)
+       for (auto edge: edges_) {
+           edge.second->ComputeResidual();
+           tempChi_alpha += edge.second->Chi2();
+       }
+       double rho = (currentChi_ - tempChi_alpha) / scale;
+
+       if (rho > 0.75 && isfinite(tempChi))   // last step was good, 误差在下降
+       {
+
+           currentLambda_ = std::max(currentLambda_/(1+alpha), 1e-7);
+
+           //update Chi
+           currentChi_ = tempChi_alpha;
+           return true;
+       } else {
+           currentLambda_ = currentLambda_ + std::abs(tempChi_alpha - currentChi_) / (2 * alpha);
+           return false;
+       }
+
     }
 
-     //method3 update
-//    RollbackStates();
-//    double temp_a = b_.transpose() * delta_x_;
-//    double alpha = temp_a / ( (tempChi - currentChi_)/2 + 2 * temp_a);
-//    //update delta delta = alpha * delta
-//    for (auto vertex: verticies_) {
-//        ulong idx = vertex.second->OrderingId();
-//        ulong dim = vertex.second->LocalDimension();
-//        delta_x_ = alpha * delta_x_.segment(idx, dim);
-
-//        // 所有的参数 x 叠加一个增量  x_{k+1} = x_{k} + delta_x
-//        vertex.second->Plus(delta_x_);
-//    }
-//    //calculate rho
-//    double tempChi_alpha = 0.0; //chi(p+h), currentLambda = chi(p)
-//    for (auto edge: edges_) {
-//        edge.second->ComputeResidual();
-//        tempChi_alpha += edge.second->Chi2();
-//    }
-//    double rho = (currentChi_ - tempChi_alpha) / scale;
-
-//    if (rho > 0.75 && isfinite(tempChi))   // last step was good, 误差在下降
-//    {
-
-//        currentLambda_ = std::max(currentLambda_/(1+alpha), 1e-7);
-
-//        //update Chi
-//        currentChi_ = tempChi_alpha;
-//        return true;
-//    } else {
-//        currentLambda_ = currentLambda_ + std::abs(tempChi_alpha - currentChi_) / (2 * alpha);
-//        return false;
-//    }
 }
 
 /** @brief conjugate gradient with perconditioning
