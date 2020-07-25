@@ -300,11 +300,12 @@ bool Problem::IsGoodStepInLM() {
     }
     int choose_method = 2;
 
-    if(choose_method == 1 || choose_method == 2){
+    if(choose_method == 1 || choose_method == 3){
 
-        //method 1,2 shared
+        //method 1,3 shared
         double rho = (currentChi_ - tempChi) / scale;
         if(choose_method == 1){
+            //method1
             if (rho > 0 && isfinite(tempChi))   // last step was good, 误差在下降
             {
 
@@ -319,7 +320,7 @@ bool Problem::IsGoodStepInLM() {
 
         }
         else{
-            //method 2
+            //method 3
             if (rho > 0 && isfinite(tempChi))   // last step was good, 误差在下降
             {
                 double alpha = 1. - pow((2 * rho - 1), 3);
@@ -337,7 +338,7 @@ bool Problem::IsGoodStepInLM() {
         }
     }
     else {
-        //method3 update
+        //method2 update
        RollbackStates();
        double temp_a = b_.transpose() * delta_x_;
        double alpha = temp_a / ( (tempChi - currentChi_)/2 + 2 * temp_a);
