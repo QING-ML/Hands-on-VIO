@@ -47,7 +47,7 @@ int main()
         double ty = xy_rand(generator);
         double tz = z_rand(generator);
 
-        Eigen::Vector3d Pw(tx, ty, tz);
+        Eigen::Vector3d Pw(tx, ty, tz);// world point position
         points.push_back(Pw);
 
         for (int i = 0; i < poseNums; ++i) {
@@ -59,18 +59,18 @@ int main()
             double z = Pc.z();
             double z_2 = z * z;
             Eigen::Matrix<double,2,3> jacobian_uv_Pc;
-            jacobian_uv_Pc<< fx/z, 0 , -x * fx/z_2,
+            jacobian_uv_Pc<< fx/z, 0 , -x * fx/z_2, //[u/x, u/y, u/z], [v/x, v/y, v/z ]
                     0, fy/z, -y * fy/z_2;
             Eigen::Matrix<double,2,3> jacobian_Pj = jacobian_uv_Pc * Rcw;
-            Eigen::Matrix<double,2,6> jacobian_Ti;
+            Eigen::Matrix<double,2,6> jacobian_Ti;//p164,194
             jacobian_Ti << -x* y * fx/z_2, (1+ x*x/z_2)*fx, -y/z*fx, fx/z, 0 , -x * fx/z_2,
                             -(1+y*y/z_2)*fy, x*y/z_2 * fy, x/z * fy, 0,fy/z, -y * fy/z_2;
 
             H.block(i*6,i*6,6,6) += jacobian_Ti.transpose() * jacobian_Ti;
             /// 请补充完整作业信息矩阵块的计算
-	    // H.block(?,?,?,?) += ?;
-	    // H.block(?,?,?,?) += ?;
-            // H.block(?,?,?,?) += ?;
+            H.block(i*6, j*3 + 6*poseNums, 6, 3) += jacobian_Ti.transpose() * jacobian_Pj;
+            H.block(6*poseNums + 3*j, i*6, 3, 6) += jacobian_Pj.transpose() * jacobian_Ti;
+            H.block(6*poseNums + 3*j, 6*poseNums + 3*j,3,3) += jacobian_Pj.transpose() * jacobian_Pj;
         }
     }
 
