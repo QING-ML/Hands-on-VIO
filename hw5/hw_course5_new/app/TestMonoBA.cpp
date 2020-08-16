@@ -4,6 +4,7 @@
 #include "backend/vertex_pose.h"
 #include "backend/edge_reprojection.h"
 #include "backend/problem.h"
+#include "backend/edge_prior.h"
 
 using namespace myslam::backend;
 using namespace std;
@@ -121,6 +122,16 @@ int main() {
             edge->SetVertex(edge_vertex);
 
             problem.AddEdge(edge);
+        }
+        //TODO: homework3
+        double Wp = 100000;
+        for (size_t k = 0; k < 2; ++k) {
+            shared_ptr<EdgeSE3Prior> edge_prior(new EdgeSE3Prior(cameras[k].twc, cameras[k].qwc));
+            std::vector<std::shared_ptr<Vertex> > edge_prior_vertex;
+            edge_prior_vertex.push_back(vertexCams_vec[k]);
+            edge_prior->SetVertex(edge_prior_vertex);
+            edge_prior->SetInformation(edge_prior->Information() * Wp);
+            problem.AddEdge(edge_prior);
         }
     }
 
